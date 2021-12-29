@@ -38,5 +38,5 @@ setup(
     packages=find_packages(),
     package_data=package_data,
     classifiers=classifiers,
-    # install_requires=['numpy'],
+    install_requires=['numpy'],
     zip_safe=False)
