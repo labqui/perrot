@@ -1,9 +1,10 @@
 #  Created by Martin Strohalm
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 # get version
 from perrot import version
+
 version = '.'.join(str(x) for x in version)
 
 # get description
@@ -25,17 +26,17 @@ classifiers = [
 
 # main setup
 setup(
-    name = 'perrot',
-    version = version,
-    description = 'Draw simple plots using Pero drawing library',
-    long_description = long_description,
-    long_description_content_type = 'text/markdown',
-    url = 'https://github.com/xxao/perrot',
-    author = 'Martin Strohalm',
-    author_email = '',
-    license = 'MIT',
-    packages = find_packages(),
-    package_data = package_data,
-    classifiers = classifiers,
-    install_requires = ['numpy', 'pero'],
-    zip_safe = False)
+    name='perrot',
+    version=version,
+    description='Draw simple plots using Pero drawing library',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
+    url='https://github.com/xxao/perrot',
+    author='Martin Strohalm',
+    author_email='',
+    license='MIT',
+    packages=find_packages(),
+    package_data=package_data,
+    classifiers=classifiers,
+    # install_requires=['numpy'],
+    zip_safe=False)

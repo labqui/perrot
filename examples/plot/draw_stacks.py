@@ -82,7 +82,7 @@ control = PlotControl(graphics=plot)
 
 # QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 # QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
-app = QApplication([])
+# app = QApplication([])
 
 chart = QtViewer()
 chart.set_size((800, 450))
