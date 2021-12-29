@@ -2,13 +2,12 @@
 #  Copyright (c) Martin Strohalm. All rights reserved.
 
 import numpy
-
+from pero import Frame
 from pero.enums import *
 from pero.properties import *
-from pero import Frame
 
-from . series import Series
 from . import utils
+from .series import Series
 
 
 class Rectangles(Series):

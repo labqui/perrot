@@ -3,6 +3,7 @@
 
 import numpy
 import pero
+
 import perrot
 
 # prepare data
@@ -18,27 +19,27 @@ size_fn = lambda d: size_scale.scale(d[0])
 
 # init plot
 plot = perrot.plot.Plot(
-    x_axis_title = "x-value",
-    y_axis_title = "random",
-    legend_position = pero.NE,
-    legend_orientation = pero.VERTICAL)
+    x_axis_title="x-value",
+    y_axis_title="random",
+    legend_position=pero.NE,
+    legend_orientation=pero.VERTICAL)
 
 # add series
 series1 = perrot.plot.Circles(
-    title = "normal 1",
-    x = x_data,
-    y = y_data_1,
-    marker_size = size_fn,
-    marker_fill_alpha = 150)
+    title="normal 1",
+    x=x_data,
+    y=y_data_1,
+    marker_size=size_fn,
+    marker_fill_alpha=150)
 
 plot.plot(series1)
 
 series2 = perrot.plot.Diamonds(
-    title = "normal 5",
-    x = x_data,
-    y = y_data_2,
-    marker_size = size_fn,
-    marker_fill_alpha = 150)
+    title="normal 5",
+    x=x_data,
+    y=y_data_2,
+    marker_size=size_fn,
+    marker_fill_alpha=150)
 
 plot.plot(series2)
 

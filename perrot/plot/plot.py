@@ -1,22 +1,19 @@
 #  Created byMartin.cz
 #  Copyright (c) Martin Strohalm. All rights reserved.
 
+from pero import Frame, Graphics, OrdinalScale, Path, colors
 from pero.enums import *
 from pero.properties import *
-from pero import colors
-from pero import Graphics, Frame, Path
-from pero import OrdinalScale
-
-from . enums import PLOT_TAG, ANNOTS_Z, GRID_Z, LABELS_Z, LEGEND_Z, SERIES_Z, TITLE_Z
-from . graphics import InGraphics, OutGraphics
-from . axes import Axis
-from . grid import Grid
-from . legend import Legend
-from . title import Title
-from . labels import Labels
-from . annotation import Annotation
-from . rangebar import RangeBar
-from . series import Series
+from .annotation import Annotation
+from .axes import Axis
+from .enums import ANNOTS_Z, GRID_Z, LABELS_Z, LEGEND_Z, PLOT_TAG, SERIES_Z, TITLE_Z
+from .graphics import InGraphics, OutGraphics
+from .grid import Grid
+from .labels import Labels
+from .legend import Legend
+from .rangebar import RangeBar
+from .series import Series
+from .title import Title
 
 
 class Plot(Graphics):
@@ -132,26 +129,26 @@ class Plot(Graphics):
         y_rangebar: perrot.plot.RangeBar, None or UNDEF
             Specifies the y-data range bar graphics.
     """
-    
+
     x = NumProperty(0, dynamic=False)
     y = NumProperty(0, dynamic=False)
     width = NumProperty(UNDEF, dynamic=False)
     height = NumProperty(UNDEF, dynamic=False)
     padding = QuadProperty(10, dynamic=False)
-    
+
     plot_x1 = NumProperty(UNDEF)
     plot_x2 = NumProperty(UNDEF)
     plot_y1 = NumProperty(UNDEF)
     plot_y2 = NumProperty(UNDEF)
-    
+
     bgr_line = Include(LineProperties, prefix="bgr_", dynamic=False, line_width=0)
     bgr_fill = Include(FillProperties, prefix="bgr_", dynamic=False, fill_color="#fff")
-    
+
     plot_line = Include(LineProperties, prefix="plot_", dynamic=False, line_color="#000")
     plot_fill = Include(FillProperties, prefix="plot_", dynamic=False, fill_color=None)
-    
+
     palette = PaletteProperty(colors.Pero, dynamic=False, nullable=True)
-    
+
     title = Property(UNDEF, types=(Title,), dynamic=False, nullable=True)
     legend = Property(UNDEF, types=(Legend,), dynamic=False, nullable=True)
     labels = Property(UNDEF, types=(Labels,), dynamic=False, nullable=True)
@@ -161,42 +158,41 @@ class Plot(Graphics):
     y_grid = Property(UNDEF, types=(Grid,), dynamic=False, nullable=True)
     x_rangebar = Property(UNDEF, types=(RangeBar,), dynamic=False, nullable=True)
     y_rangebar = Property(UNDEF, types=(RangeBar,), dynamic=False, nullable=True)
-    
-    
+
     def __init__(self, **overrides):
         """Initializes a new instance of Plot."""
-        
+
         # init main graphics
         if 'title' not in overrides:
             overrides['title'] = Title(tag='title', position=POS_TOP, z_index=TITLE_Z)
-        
+
         if 'legend' not in overrides:
             overrides['legend'] = Legend(tag='legend', z_index=LEGEND_Z)
-        
+
         if 'labels' not in overrides:
             overrides['labels'] = Labels(tag='labels', z_index=LABELS_Z)
-        
+
         if 'x_axis' not in overrides:
             overrides['x_axis'] = Axis(tag='x_axis', position=POS_BOTTOM, level=1, margin=0)
-        
+
         if 'y_axis' not in overrides:
             overrides['y_axis'] = Axis(tag='y_axis', position=POS_LEFT, level=2, margin=0)
-        
+
         if 'x_grid' not in overrides:
             overrides['x_grid'] = Grid(tag='x_grid', z_index=GRID_Z)
-        
+
         if 'y_grid' not in overrides:
             overrides['y_grid'] = Grid(tag='y_grid', z_index=GRID_Z)
-        
+
         if 'x_rangebar' not in overrides:
             overrides['x_rangebar'] = RangeBar(tag='x_rangebar', position=POS_TOP)
-        
+
         if 'y_rangebar' not in overrides:
             overrides['y_rangebar'] = RangeBar(tag='y_rangebar', position=POS_RIGHT)
-        
+
         # init base
         super().__init__(**overrides)
-        
+
         # init containers
         self._graphics = {}
         self._axes = []
@@ -204,17 +200,16 @@ class Plot(Graphics):
         self._annots = []
         self._mapping = {}
         self._frame = Frame(0, 0, 1, 1)
-        
+
         # register main graphics
         self._init_graphics()
-        
+
         # init color scale
         self._init_colors()
-        
+
         # bind events
         self.bind(EVT_PROPERTY_CHANGED, self._on_plot_property_changed)
-    
-    
+
     @property
     def axes(self):
         """
@@ -224,10 +219,9 @@ class Plot(Graphics):
             (perrot.plot.Axis,)
                 All available axes.
         """
-        
+
         return self._axes[:]
-    
-    
+
     @property
     def series(self):
         """
@@ -237,10 +231,9 @@ class Plot(Graphics):
             (perrot.plot.Series,)
                 All available series.
         """
-        
+
         return self._series[:]
-    
-    
+
     def get_frame(self, tag=PLOT_TAG):
         """
         Gets bounding box of an object specified by given tag. In addition, a
@@ -255,16 +248,15 @@ class Plot(Graphics):
             pero.Frame or None
                 Bounding box of specified object or None if object not known.
         """
-        
+
         # data frame
         if tag == PLOT_TAG:
             return self._frame
-        
+
         # object frame
         obj = self.get_obj(tag)
         return obj.frame if obj is not None else None
-    
-    
+
     def get_obj(self, tag):
         """
         Gets object for given tag.
@@ -277,10 +269,9 @@ class Plot(Graphics):
             pero.Graphics or None
                 Requested object or None if not available.
         """
-        
+
         return self._graphics.get(tag, None)
-    
-    
+
     def get_obj_axes(self, obj):
         """
         Gets the axes associated with specified object.
@@ -293,16 +284,15 @@ class Plot(Graphics):
             (str,)
                 Associated axes tags.
         """
-        
+
         tag = obj.tag if isinstance(obj, Graphics) else obj
-        
+
         mapping = self._mapping.get(tag, None)
         if not mapping:
             return []
-        
+
         return tuple(mapping.keys())
-    
-    
+
     def get_obj_below(self, x, y):
         """
         Gets the top-most object for which given coordinates fall into its
@@ -320,22 +310,21 @@ class Plot(Graphics):
             pero.Graphics, str or None
                 Corresponding object, perrot.plot.PLOT_TAG or None.
         """
-        
+
         # check plot area first
         if self._frame.contains(x, y):
             return PLOT_TAG
-        
+
         # get all matching objects
         objs = [o for o in self._graphics.values() if o.frame.contains(x, y)]
         if not objs:
             return None
-        
+
         # sort by z-axis
         objs.sort(key=lambda d: d.z_index, reverse=True)
-        
+
         return objs[0]
-    
-    
+
     def get_series_limits(self, axis, x_range=None, y_range=None, exact=False):
         """
         Gets minimum and maximum value from all visible series connected to
@@ -361,67 +350,66 @@ class Plot(Graphics):
             (float, float)
                 Minimum and maximum value of the axis from related series.
         """
-        
+
         minimum = None
         maximum = None
-        
+
         # check axis
         if axis is None:
             return minimum, maximum
-        
+
         # get axis
         if not isinstance(axis, Axis):
             axis = self._graphics[axis]
-        
+
         # add series
         for series in self._series:
-            
+
             # skip invisible
             if not series.visible:
                 continue
-            
+
             # get series axes
             mappings = self._mapping.get(series.tag, {})
-            
+
             # check if dependent
             if axis.tag not in mappings:
                 continue
-            
+
             # get axis mapping
             mapping = mappings[axis.tag]
-            
+
             # use specific function
             if mapping['limits'] is not None:
-                
+
                 limits = mapping['limits'](x_range, y_range, exact)
                 if limits is None:
                     continue
-                
+
                 lo, hi = limits
-            
+
             # get standard limits
             else:
-                
+
                 limits = series.get_limits(x_range=x_range, y_range=y_range, exact=exact)
                 if limits is None:
                     continue
-                
+
                 limits = limits[0] if axis.position in (POS_TOP, POS_BOTTOM) else limits[1]
                 if limits is None:
                     continue
-                
+
                 lo, hi = limits
-            
+
             # update range
             if minimum is None or lo < minimum:
                 minimum = lo
-            
+
             if maximum is None or hi > maximum:
                 maximum = hi
-        
+
         return minimum, maximum
-    
-    
+
     def get_parent_axes(self, axis):
         """
         Gets parent axes, which are used by any visible series together with
@@ -436,45 +424,44 @@ class Plot(Graphics):
             (perrot.plot.Axis,)
                 Parent axes.
         """
-        
+
         # get axis
         if not isinstance(axis, Axis):
             axis = self._graphics[axis]
-        
+
         # init buffer
         parents = set()
-        
+
         # check series
         for series in self._series:
-            
+
             # skip invisible
             if not series.visible:
                 continue
-            
+
             # get series axes
             mappings = self._mapping.get(series.tag, {})
-            
+
             # check if dependent
             if axis.tag not in mappings:
                 continue
-            
+
             # get parents
             for item_tag in mappings:
-                
+
                 # check same axis
                 if item_tag == axis.tag:
                     continue
-                
+
                 # get axis
                 item = self._graphics[item_tag]
-                
+
                 # check if parent
                 if item.level < axis.level:
                     parents.add(item)
-        
+
         return list(parents)
-    
-    
+
     def get_child_axes(self, axis):
         """
         Gets child axes, which are used by any visible series together with
@@ -489,125 +476,123 @@ class Plot(Graphics):
             (perrot.plot.Axis,)
                 Child axes.
         """
-        
+
         # get axis
         if not isinstance(axis, Axis):
             axis = self._graphics[axis]
-        
+
         # init buffer
         children = set()
-        
+
         # check series
         for series in self._series:
-            
+
             # skip invisible
             if not series.visible:
                 continue
-            
+
             # get series axes
             mappings = self._mapping.get(series.tag, {})
-            
+
             # check if dependent
             if axis.tag not in mappings:
                 continue
-            
+
             # get children
             for item_tag in mappings:
-                
+
                 # check same axis
                 if item_tag == axis.tag:
                     continue
-                
+
                 # get axis
                 item = self._graphics[item_tag]
-                
+
                 # check if child
                 if item.level > axis.level:
                     children.add(item)
-        
+
         return list(children)
-    
-    
+
     def draw(self, canvas, source=UNDEF, **overrides):
         """Uses given canvas to draw the plot."""
-        
+
         # get properties
         x = self.get_property('x', source, overrides)
         y = self.get_property('y', source, overrides)
         width = self.get_property('width', source, overrides)
         height = self.get_property('height', source, overrides)
-        
+
         # get size from canvas
         if width is UNDEF:
             width = canvas.viewport.width
         if height is UNDEF:
             height = canvas.viewport.height
-        
+
         # init objects
         self._init_frames(canvas, source, overrides)
         self._init_objects(canvas, source, overrides)
-        
+
         # draw main bgr
         canvas.set_pen_by(self, prefix="bgr_", source=source, overrides=overrides)
         canvas.set_brush_by(self, prefix="bgr_", source=source, overrides=overrides)
         canvas.draw_rect(x, y, width, height)
-        
+
         # refuse to draw if "negative" size
         if self._frame.reversed:
             return
-        
+
         # draw plot bgr
         canvas.line_width = 0
         canvas.set_brush_by(self, prefix="plot_", source=source, overrides=overrides)
         canvas.draw_rect(*self._frame.rect)
-        
+
         # get objects
         objects = tuple(self._graphics.values())
-        
+
         out_objects = [o for o in objects if isinstance(o, OutGraphics)]
         out_objects.sort(key=lambda o: o.z_index)
-        
+
         in_objects = [o for o in objects if isinstance(o, InGraphics)]
         in_objects.sort(key=lambda o: o.z_index)
-        
+
         # separate grids and other inside objects
         grids = [o for o in in_objects if o.visible and isinstance(o, Grid)]
         others = [o for o in in_objects if o.visible and not isinstance(o, Grid)]
         grids_z = grids[0].z_index if grids else GRID_Z
-        
+
         # clip plot area
         with canvas.clip(Path().rect(*self._frame.rect)):
-            
+
             # draw inside objects behind grids
             for obj in others:
                 if obj.z_index < grids_z:
                     obj.draw(canvas)
-            
+
             # draw grids
             for grid in grids:
                 grid.draw_minor(canvas)
             for grid in grids:
                 grid.draw_major(canvas)
-            
+
             # draw inside objects above grids
             for obj in others:
                 if obj.z_index >= grids_z:
                     obj.draw(canvas)
-        
+
         # draw plot outline
         canvas.fill_style = FILL_STYLE_TRANS
         canvas.set_pen_by(self, prefix="plot_", source=source, overrides=overrides)
         canvas.draw_rect(*self._frame.rect)
-        
+
         # draw outside objects
         for obj in out_objects:
             if obj.visible:
                 obj.draw(canvas)
-        
+
         # draw debug rectangles
         # self._draw_frames(canvas)
-    
-    
+
     def add(self, obj):
         """
         Adds additional graphics to the plot. Depending on the object base class
@@ -617,37 +602,36 @@ class Plot(Graphics):
             obj: perrot.plot.InGraphics or perrot.plot.OutGraphics
                 Object to be added.
         """
-        
+
         # check type
         if not isinstance(obj, (InGraphics, OutGraphics)):
             message = "Object must be of type pero.InGraphics or pero.OutGraphics! -> %s" % type(obj)
             raise TypeError(message)
-        
+
         # check tag
         if not obj.tag or obj.tag in self._graphics or obj.tag == PLOT_TAG:
             message = "Object must have unique tag specified."
             raise ValueError(message)
-        
+
         # check z_index
         if obj.z_index is UNDEF:
             self._init_z_index(obj)
-        
+
         # add object
         self._graphics[obj.tag] = obj
-        
+
         # add to axes
         if isinstance(obj, Axis):
             self._axes.append(obj)
-        
+
         # add to series
         elif isinstance(obj, Series):
             self._series.append(obj)
-        
+
         # add to annotations
         elif isinstance(obj, Annotation):
             self._annots.append(obj)
-    
-    
+
     def remove(self, obj):
         """
         Removes object corresponding to given tag. Note that axis cannot be
@@ -657,43 +641,42 @@ class Plot(Graphics):
             obj: str or pero.Graphics
                 Object's unique tag or the object itself.
         """
-        
+
         # get object tag
         tag = obj.tag if isinstance(obj, Graphics) else obj
-        
+
         # get object
         obj = self._graphics.get(tag, None)
         if obj is None:
             message = "Cannot find object by tag '%s'!" % tag
             raise ValueError(message)
-        
+
         # check axes connections
         if isinstance(obj, Axis):
             axes = [y for x in self._mapping.values() for y in x]
             if tag in axes:
                 message = "Axis '%s' is used by another graphics and cannot be removed!" % tag
                 raise ValueError(message)
-        
+
         # remove axis
         if obj in self._axes:
             self._axes.remove(obj)
-        
+
         # remove series
         elif obj in self._series:
             self._series.remove(obj)
-        
+
         # remove annotation
         elif obj in self._annots:
             self._annots.remove(obj)
-        
+
         # remove mapping
         if tag in self._mapping:
             del self._mapping[tag]
-        
+
         # remove graphics
         del self._graphics[tag]
-    
-    
+
     def map(self, obj, axis, scale=None, limits=None):
         """
         Maps object to specific axis to share and update the scale.
@@ -714,50 +697,50 @@ class Plot(Graphics):
             limits: callable or None
                 Function to be used to get specific data range for the axis.
         """
-        
+
         # check axis
         if axis is None:
             return
-        
+
         # get objects
         if not isinstance(obj, Graphics):
             obj = self._graphics[obj]
-        
+
         if not isinstance(axis, Graphics):
             axis = self._graphics[axis]
-        
+
         # check object
         if obj.tag not in self._graphics:
             message = "Cannot find object by tag '%s'!" % obj.tag
             raise ValueError(message)
-        
+
         # check axis
         if axis.tag not in (x.tag for x in self._axes):
             message = "Cannot find axis by tag '%s'!" % axis.tag
             raise ValueError(message)
-        
+
         # check scale property
         if scale is not None:
-            
+
             if not obj.has_property(scale):
                 message = "Object doesn't have the property '%s'!" % scale
                 raise ValueError(message)
-            
+
             if not axis.has_property('scale'):
                 raise ValueError("Axis doesn't have the 'scale' property!")
-        
+
         # get existing mapping
         mapping = self._mapping.get(obj.tag, {})
-        
+
         # add/replace by given axis
         mapping[axis.tag] = {
             'scale': scale,
-            'limits': limits}
-        
+            'limits': limits
+        }
+
         # store new mapping
         self._mapping[obj.tag] = mapping
-    
-    
+
     def annotate(self, annotation, x_axis='x_axis', y_axis='y_axis', **overrides):
         """
         This method provides a convenient way to add annotations to the plot.
@@ -785,25 +768,24 @@ class Plot(Graphics):
             perrot.plot.Annotation
                 Final annotation object.
         """
-        
+
         # create annotation
         if not isinstance(annotation, Annotation):
             annotation = Annotation(glyph=annotation, **overrides)
-        
+
         # set new properties
         elif overrides:
             annotation.set_properties(overrides, True)
-        
+
         # add object
         self.add(annotation)
-        
+
         # map axes
         self.map(annotation, x_axis, scale='x_scale')
         self.map(annotation, y_axis, scale='y_scale')
-        
+
         return annotation
-    
-    
+
     def plot(self, series, x_axis='x_axis', y_axis='y_axis', **overrides):
         """
         This method provides a convenient way to add data series to the plot.
@@ -827,28 +809,27 @@ class Plot(Graphics):
             overrides: key:value pairs
                 Specific properties to be set to the series.
         """
-        
+
         # check type
         if not isinstance(series, Series):
             message = "Series must be of type perrot.plot.Series! -> %s" % type(series)
             raise TypeError(message)
-        
+
         # set new properties
         if overrides:
             series.set_properties(overrides, True)
-        
+
         # set color
         if series.color is UNDEF and self._colors:
             series.color = self._colors.scale(series.tag)
-        
+
         # add object
         self.add(series)
-        
+
         # map axes
         self.map(series, x_axis, scale='x_scale')
         self.map(series, y_axis, scale='y_scale')
-    
-    
+
     def zoom(self, axis=None, minimum=None, maximum=None, propagate=True):
         """
         Sets given range to specific axis.
@@ -873,7 +854,7 @@ class Plot(Graphics):
             propagate: bool
                 If set to True, dependent axes will be zoomed accordingly.
         """
-        
+
         # get axes
         if axis is None:
             axes = self._axes[:]
@@ -882,34 +863,33 @@ class Plot(Graphics):
         else:
             axis = self._graphics[axis]
             axes = [axis]
-        
+
         # sort axes by level
         axes.sort(key=lambda a: a.level)
-        
+
         # set axes
         for item in axes:
-            
+
             # set limits
             lo, hi = minimum, maximum
-            
+
             # get limits from series
             if lo is None and hi is None:
                 lo, hi = self.get_series_limits(item)
-            
+
             # check limits
             if lo is None:
                 lo = item.scale.in_range[0]
             if hi is None:
                 hi = item.scale.in_range[1]
-            
+
             # finalize axis
             self.finalize_axis(item, lo, hi)
-        
+
         # propagate main axis change
         if propagate and axis is not None:
             self.finalize_zoom(axis)
-    
-    
+
     def finalize_zoom(self, axes):
         """
         For each given axis this method finalizes all child axes according to
@@ -919,61 +899,60 @@ class Plot(Graphics):
             axes: (str,) or (perrot.plot.Axis,)
                 Unique tags of the axes or the axes itself.
         """
-        
+
         # check for single axis
         if isinstance(axes, (str, Axis)):
             axes = (axes,)
-        
+
         # get axes
         axes = list(axes)
         for i, axis in enumerate(axes):
             if not isinstance(axis, Axis):
                 axes[i] = self._graphics[axis]
-        
+
         # ensure unique and sort
         axes = list(set(axes))
         axes.sort(key=lambda a: a.level)
-        
+
         # get all related axes
         related = list(set(c for p in axes for c in self.get_child_axes(p)))
         related.sort(key=lambda a: a.level)
-        
+
         # init already changed
         changed = set([a.tag for a in axes])
-        
+
         # autoscale related axes
         for axis in related:
-            
+
             # skip changed or independent
             if axis.tag in changed or axis.static or not axis.autoscale:
                 continue
-            
+
             # get parent axes
             parents = self.get_parent_axes(axis)
             if not parents:
                 continue
-            
+
             # get crop
             x_range = None
             y_range = None
-            
+
             for parent in parents:
-                
+
                 if parent.position in (POS_TOP, POS_BOTTOM):
                     x_range = parent.scale.in_range
-                
+
                 elif parent.position in (POS_LEFT, POS_RIGHT):
                     y_range = parent.scale.in_range
-            
+
             # get axis limits
             start, end = self.get_series_limits(axis, x_range, y_range, exact=False)
             if start is None or end is None:
                 continue
-            
+
             # finalize axis
             self.finalize_axis(axis, start, end)
-    
-    
+
     def finalize_axis(self, axis, start, end):
         """
         Finalizes range for given axis according to its settings. This ensures
@@ -989,71 +968,70 @@ class Plot(Graphics):
             end: float or None
                 End value to be set.
         """
-        
+
         # get axis
         if not isinstance(axis, Axis):
             axis = self._graphics[axis]
-        
+
         # get range
         range_min, range_max = self.get_series_limits(axis.tag)
-        
+
         # use full range if not set
         if start is None or end is None:
             start = range_min
             end = range_max
-        
+
         # check range
         if start is None or end is None:
             start = axis.empty_range[0]
             end = axis.empty_range[1]
-        
+
         # check data limits
         if axis.check_limits and range_min is not None and range_max is not None:
-            
+
             if start < range_min and end > range_max:
                 start = range_min
                 end = range_max
-            
+
             elif start < range_min:
                 shift = range_min - start
                 start += shift
                 end += shift
-            
+
             elif end > range_max:
                 shift = end - range_max
                 start -= shift
                 end -= shift
-        
+
         # check required values
         if axis.includes:
-            
+
             incl_min = min(axis.includes)
             incl_max = max(axis.includes)
-            
+
             if start > incl_min:
                 start = incl_min
-            
+
             if end < incl_max:
                 end = incl_max
-        
+
         # check range
         if start == end and start == 0:
             end = 1.
-        
+
         # check symmetry
         if axis.symmetric:
             maximum = max(abs(start), abs(end))
             start, end = -maximum, maximum
-        
+
         # check range
         if start == end:
-            start -= 0.1*start
-            end += 0.1*end
-        
+            start -= 0.1 * start
+            end += 0.1 * end
+
         # apply to axis
         axis.scale.in_range = (start, end)
-    
-    
+
     def view(self, title=None, width=None, height=None, backend=None, **options):
         """
         Shows current plot as interactive viewer app.
@@ -1080,323 +1058,356 @@ class Plot(Graphics):
             options: str:any pairs
                 Additional parameters for specific backend.
         """
-        
+
         # get size
         if width is None:
             width = self.width
         if height is None:
             height = self.height
-        
+
         # init control
         from .control import PlotControl
         control = PlotControl(graphics=self)
-        
+
         # show viewer
         control.show(title, width, height, backend, **options)
-    
-    
+
+    def view2(self, title=None, width=None, height=None, backend=None, **options):
+        """
+        Shows current plot as interactive viewer app.
+
+        Note that is just a convenient scripting shortcut and this method cannot
+        be used if the plot is already part of any UI app.
+
+        Args:
+            title: str or None
+                Viewer frame title. If set to None, current plot title is used.
+
+            width: float or None
+                Image width in device units. If set to None, current plot width
+                is used.
+
+            height: float or None
+                Image height in device units. If set to None, current plot
+                height is used.
+
+            backend: pero.BACKEND or None
+                Specific backend to be used. The value must be an item from the
+                pero.BACKEND enum.
+
+            options: str:any pairs
+                Additional parameters for specific backend.
+        """
+
+        # get size
+        if width is None:
+            width = self.width
+        if height is None:
+            height = self.height
+
+        # init control
+        from .control import PlotControl
+        control = PlotControl(graphics=self)
+
+        # show viewer
+        control.show(title, width, height, backend, **options)
+
     def _init_frames(self, canvas, source, overrides):
         """Calculates and sets objects frames."""
-        
+
         # clean frames
         for obj in self._graphics.values():
             obj.frame = Frame(0, 0, 0, 0)
-        
+
         # get properties
         x = self.get_property('x', source, overrides)
         y = self.get_property('y', source, overrides)
         width = self.get_property('width', source, overrides)
         height = self.get_property('height', source, overrides)
         padding = self.get_property('padding', source, overrides)
-        
+
         plot_x1 = self.get_property('plot_x1', source, overrides)
         plot_x2 = self.get_property('plot_x2', source, overrides)
         plot_y1 = self.get_property('plot_y1', source, overrides)
         plot_y2 = self.get_property('plot_y2', source, overrides)
-        
+
         # get size from canvas
         if width is UNDEF:
             width = canvas.viewport.width
         if height is UNDEF:
             height = canvas.viewport.height
-        
+
         # get objects
         objects = tuple(self._graphics.values())
-        
+
         out_objects = [o for o in objects if isinstance(o, OutGraphics)]
         out_objects.sort(key=lambda o: o.z_index)
-        
+
         in_objects = [o for o in objects if isinstance(o, InGraphics)]
         in_objects.sort(key=lambda o: o.z_index)
-        
+
         # init buffers
         left_obj = []
         left_extents = []
         left_margins = [0]
-        
+
         right_obj = []
         right_extents = []
         right_margins = [0]
-        
+
         top_obj = []
         top_extents = []
         top_margins = [0]
-        
+
         bottom_obj = []
         bottom_extents = []
         bottom_margins = [0]
-        
+
         # get extents and margins
         for obj in out_objects:
-            
+
             position = obj.position
             extent = obj.get_extent(canvas) if obj.visible else 0
             margin = obj.margin if obj.visible else (0, 0, 0, 0)
-            
+
             if position == POS_LEFT:
                 left_obj.append(obj)
                 left_extents.append(extent)
                 left_margins[-1] = max(margin[1], left_margins[-1])
                 left_margins.append(margin[3])
-            
+
             elif position == POS_RIGHT:
                 right_obj.append(obj)
                 right_extents.append(extent)
                 right_margins[-1] = max(margin[3], right_margins[-1])
                 right_margins.append(margin[1])
-            
+
             elif position == POS_TOP:
                 top_obj.append(obj)
                 top_extents.append(extent)
                 top_margins[-1] = max(margin[2], top_margins[-1])
                 top_margins.append(margin[0])
-            
+
             elif position == POS_BOTTOM:
                 bottom_obj.append(obj)
                 bottom_extents.append(extent)
                 bottom_margins[-1] = max(margin[0], bottom_margins[-1])
                 bottom_margins.append(margin[2])
-            
+
             else:
                 message = "Unknown position '%s' for '%s' object." % (position, obj.tag)
                 raise ValueError(message)
-        
+
         # init inside frame
         if plot_x1 is UNDEF:
             plot_x1 = x + padding[3] + sum(left_extents) + sum(left_margins[:-1])
-        
+
         if plot_x2 is UNDEF:
             plot_x2 = x - padding[1] + width - sum(right_extents) - sum(right_margins[:-1])
-        
+
         if plot_y1 is UNDEF:
             plot_y1 = y + padding[0] + sum(top_extents) + sum(top_margins[:-1])
-        
+
         if plot_y2 is UNDEF:
             plot_y2 = y - padding[2] + height - sum(bottom_extents) - sum(bottom_margins[:-1])
-        
-        self._frame = Frame(plot_x1, plot_y1, plot_x2-plot_x1, plot_y2-plot_y1)
-        
+
+        self._frame = Frame(plot_x1, plot_y1, plot_x2 - plot_x1, plot_y2 - plot_y1)
+
         # make frame for left objects
         shift = plot_x1 - left_margins[0]
         for i, obj in enumerate(left_obj):
             extent = left_extents[i]
-            obj.frame = Frame(shift-extent, plot_y1, extent, plot_y2-plot_y1)
+            obj.frame = Frame(shift - extent, plot_y1, extent, plot_y2 - plot_y1)
             if obj.visible:
-                shift -= extent + left_margins[i+1]
-        
+                shift -= extent + left_margins[i + 1]
+
         # make frame for right objects
         shift = plot_x2 + right_margins[0]
         for i, obj in enumerate(right_obj):
             extent = right_extents[i]
-            obj.frame = Frame(shift, plot_y1, extent, plot_y2-plot_y1)
+            obj.frame = Frame(shift, plot_y1, extent, plot_y2 - plot_y1)
             if obj.visible:
-                shift += extent + right_margins[i+1]
-        
+                shift += extent + right_margins[i + 1]
+
         # make frame for top objects
         shift = plot_y1 - top_margins[0]
         for i, obj in enumerate(top_obj):
             extent = top_extents[i]
-            obj.frame = Frame(plot_x1, shift-extent, plot_x2-plot_x1, extent)
+            obj.frame = Frame(plot_x1, shift - extent, plot_x2 - plot_x1, extent)
             if obj.visible:
-                shift -= extent + top_margins[i+1]
-        
+                shift -= extent + top_margins[i + 1]
+
         # make frame for bottom objects
         shift = plot_y2 + bottom_margins[0]
         for i, obj in enumerate(bottom_obj):
             extent = bottom_extents[i]
-            obj.frame = Frame(plot_x1, shift, plot_x2-plot_x1, extent)
+            obj.frame = Frame(plot_x1, shift, plot_x2 - plot_x1, extent)
             if obj.visible:
-                shift += extent + bottom_margins[i+1]
-        
+                shift += extent + bottom_margins[i + 1]
+
         # set plot inside frame to inside objects
         for obj in in_objects:
             obj.frame = self._frame
-    
-    
+
     def _init_objects(self, canvas, source, overrides):
         """Sets associated scales and initializes all objects."""
-        
+
         # get objects
         objects = tuple(self._graphics.values())
-        
+
         out_objects = [o for o in objects if isinstance(o, OutGraphics)]
         out_objects.sort(key=lambda o: o.z_index)
-        
+
         in_objects = [o for o in objects if isinstance(o, InGraphics)]
         in_objects.sort(key=lambda o: o.z_index)
-        
+
         # set scales by axes
         for obj in objects:
-            
+
             # get associate axes
             axes = self._mapping.get(obj.tag, {})
             for axis_tag in axes:
-                
+
                 # set scale to object
                 scale_prop = axes[axis_tag]['scale']
                 if scale_prop:
                     axis = self._graphics[axis_tag]
                     obj.set_property(scale_prop, axis.scale)
-        
+
         # init outside objects
         for obj in out_objects:
             obj.initialize(canvas, self)
-        
+
         # init inside objects
         for obj in in_objects:
             obj.initialize(canvas, self)
-    
-    
+
     def _init_graphics(self):
         """Registers main objects."""
-        
+
         # register objects
         if self.title:
             self.add(self.title)
-        
+
         if self.legend:
             self.add(self.legend)
-        
+
         if self.labels:
             self.add(self.labels)
-        
+
         if self.x_axis:
             self.x_axis.tag = 'x_axis'
             self.x_axis.position = self.x_axis.position or POS_BOTTOM
             self.add(self.x_axis)
-        
+
         if self.y_axis:
             self.y_axis.tag = 'y_axis'
             self.y_axis.position = self.y_axis.position or POS_LEFT
             self.add(self.y_axis)
-        
+
         if self.x_grid and self.x_axis:
             self.add(self.x_grid)
             self.map(self.x_grid, self.x_axis, scale='scale')
-        
+
         if self.y_grid and self.y_axis:
             self.add(self.y_grid)
             self.map(self.y_grid, self.y_axis, scale='scale')
-        
+
         if self.x_rangebar and self.x_axis:
             self.add(self.x_rangebar)
             self.map(self.x_rangebar, self.x_axis, scale='scale')
-        
+
         if self.y_rangebar and self.y_axis:
             self.add(self.y_rangebar)
             self.map(self.y_rangebar, self.y_axis, scale='scale')
-    
-    
+
     def _init_colors(self):
         """Initializes default color scale."""
-        
+
         # get palette
         palette = self.palette
         if not palette:
             self.palette = colors.Pero
-        
+
         # init color scale
         self._colors = OrdinalScale(
-            out_range = self.palette,
-            implicit = True,
-            recycle = True)
-    
-    
+            out_range=self.palette,
+            implicit=True,
+            recycle=True)
+
     def _init_z_index(self, obj):
         """Initializes z-index of given object."""
-        
+
         # series
         if isinstance(obj, Series):
             z_index = [o.z_index for o in self._series if o.z_index]
             obj.z_index = max(SERIES_Z, 1 + max(z_index) if z_index else SERIES_Z)
-        
+
         # annotations
         elif isinstance(obj, Annotation):
             z_index = [o.z_index for o in self._annots if o.z_index]
             obj.z_index = max(ANNOTS_Z, 1 + max(z_index) if z_index else ANNOTS_Z)
-        
+
         # outsides
         elif isinstance(obj, OutGraphics):
             z_index = [o.z_index for o in self._graphics.values() if isinstance(o, OutGraphics) and not isinstance(o, Title)]
             obj.z_index = 1 + max(z_index) if z_index else 0
-    
-    
+
     def _draw_frames(self, canvas):
         """Draws all outside objects frames (for debugging)."""
-        
+
         # init color scale
         color_scale = OrdinalScale(
-            out_range = colors.Pero,
-            implicit = True,
-            recycle = True)
-        
+            out_range=colors.Pero,
+            implicit=True,
+            recycle=True)
+
         # set pen and brush
         canvas.line_width = 1
         canvas.line_style = LINE_STYLE_SOLID
         canvas.fill_style = FILL_STYLE_SOLID
-        
+
         # draw frames
         for tag, obj in self._graphics.items():
-            
+
             # set color
             color = color_scale.scale(tag)
             canvas.line_color = color.opaque(0.5)
             canvas.fill_color = color.opaque(0.25)
-            
+
             # draw frame
             canvas.draw_rect(*obj.frame.rect)
             print(tag, ":", obj.frame)
-    
-    
+
     def _on_plot_property_changed(self, evt):
         """Called after any property has changed."""
-        
+
         # color palette changed
         if evt.name == 'palette':
             self._init_colors()
-        
+
         # main objects
         if evt.name in ('title', 'legend', 'labels', 'x_axis', 'y_axis', 'x_grid', 'y_grid', 'x_rangebar', 'y_rangebar'):
-            
+
             # remove old
             if evt.old_value:
                 self.remove(evt.old_value.tag)
-            
+
             # register new
             if evt.new_value:
-                
+
                 # register new
                 self.add(evt.new_value)
-                
+
                 # map to axes
                 if evt.name == 'x_grid':
                     self.map(evt.new_value, self.x_axis, scale='scale')
-                
+
                 elif evt.name == 'y_grid':
                     self.map(evt.new_value, self.y_axis, scale='scale')
-                
+
                 elif evt.name == 'x_rangebar':
                     self.map(evt.new_value, self.x_axis, scale='scale')
-                
+
                 elif evt.name == 'y_rangebar':
                     self.map(evt.new_value, self.y_axis, scale='scale')

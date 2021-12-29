@@ -1,9 +1,9 @@
 #  Created byMartin.cz
 #  Copyright (c) Martin Strohalm. All rights reserved.
 
+from pero import FrameProperty, Graphics
 from pero.enums import *
 from pero.properties import *
-from pero import Graphics
 
 
 class InGraphics(Graphics):
@@ -17,10 +17,9 @@ class InGraphics(Graphics):
             Specifies the inner area of the parent plot. Typically this is
             calculated and set by the parent plot.
     """
-    
+
     frame = FrameProperty(UNDEF, dynamic=False)
-    
-    
+
     def initialize(self, canvas, plot):
         """
         This method is automatically called by parent plot to set specific
@@ -35,7 +34,7 @@ class InGraphics(Graphics):
             plot: perrot.plot.Plot
                 Parent plot
         """
-        
+
         pass
 
 
@@ -58,12 +57,11 @@ class OutGraphics(Graphics):
             Specifies the frame available for the object. Typically this is
             calculated and set by the parent plot.
     """
-    
+
     position = EnumProperty(UNDEF, enum=POSITION_LRTB, dynamic=False)
     margin = QuadProperty(10, dynamic=False)
     frame = FrameProperty(UNDEF, dynamic=False)
-    
-    
+
     def get_extent(self, canvas):
         """
         This method is automatically called by parent plot to get amount of
@@ -85,10 +83,9 @@ class OutGraphics(Graphics):
             float
                 Space needed.
         """
-        
+
         return 0
-    
-    
+
     def initialize(self, canvas, plot):
         """
         This method is automatically called by parent plot to set specific
@@ -103,5 +100,5 @@ class OutGraphics(Graphics):
             plot: perrot.plot..Plot
                 Parent plot
         """
-        
+
         pass
