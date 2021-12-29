@@ -2,25 +2,17 @@
 #  Copyright (c) Martin Strohalm. All rights reserved.
 
 # set version
-version = (0, 15, 2)
-
-# import enums
-from . enums import *
+version = (0, 20, 0)
 
 # import modules
-from . import chart
-from . import pie
-from . import plot
-from . import venn
-
+from . import chart, pie, plot, venn
 # import main objects
-from . chart import *
-
+from .chart import *
+# import enums
+from .enums import *
 # import pie chart
-from . pie import Pie
-
-# import Venn diagram
-from . venn import Venn
-
+from .pie import Pie
 # import pre-build charts
-from . prebuilds import Chart
+from .prebuilds import Chart
+# import Venn diagram
+from .venn import Venn
